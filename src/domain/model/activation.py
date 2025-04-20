@@ -1,8 +1,4 @@
-from typing import Callable
-
 import numpy as np
-
-Activation = Callable[[np.ndarray], np.ndarray]
 
 
 def relu(z: np.ndarray) -> np.ndarray:
@@ -10,7 +6,7 @@ def relu(z: np.ndarray) -> np.ndarray:
 
 
 def d_relu(z: np.ndarray) -> np.ndarray:
-    return z > 0
+    return (z > 0).astype(float)
 
 
 def sigmoid(z: np.ndarray) -> np.ndarray:
