@@ -1,12 +1,13 @@
 from collections import namedtuple
 
 import numpy as np
+from sklearn.decomposition import PCA
 
 from domain.model.activation import d_relu, d_sigmoid, relu, sigmoid
 from domain.model.cost import (binary_cross_entropy, d_binary_cross_entropy,
                                d_mse, mse)
 from domain.model.layer import HiddenLayer, NeuralNetwork, OutputLayer
-from domain.type.aliases import A, ErrorEntered, X, Y
+from domain.type.aliases import A, ErrorEntered, UpdateChart, X, Y
 
 Hidden = namedtuple("TopologyItem_Hidden", ("neurons",
                     "activation", "d_activation"), defaults=(None, relu, d_relu))
@@ -46,21 +47,27 @@ def __learn(neural_network: NeuralNetwork, expected: Y, prediction: A) -> None:
             dc_da=error, error_next_layer=error, weight_next_layer=weights)
 
 
-def epoch(i: int, neural_network: NeuralNetwork, dataset: X, expected: Y) -> None:
+def __epoch(i: int, neural_network: NeuralNetwork, dataset: X, expected: Y, inverse_pca, callback: UpdateChart = None) -> None:
     prediction = __predict(neural_network, dataset)
     error = binary_cross_entropy(prediction, expected)
 
     __learn(neural_network, expected, prediction)
 
+    accuracy = np.mean(np.equal(np.rint(prediction), expected))
+    if callback is not None:
+        rint_prediction = predict(neural_network, inverse_pca.T)
+        callback(error, accuracy, rint_prediction)
+
     if i % 10 == 0:
-        print(f"Epoch {i}, error: {error:.4f}")
+        print(f"Epoch {i}, error: {error:.4f}, accuracy: {accuracy:.2%}")
 
 
-def train(dataset: X, expected: Y, learning_rate: float, epochs: int):
+def train(dataset: X, expected: Y, learning_rate: float, epochs: int, inverse_pca, callback: UpdateChart = None):
     neural_network = __create_neural_network(
         dataset.shape[0], 1, learning_rate)
 
-    any(map(lambda i: epoch(i, neural_network, dataset, expected), range(epochs)))
+    any(map(lambda i: __epoch(i, neural_network,
+        dataset, expected, inverse_pca, callback), range(epochs)))
 
     return neural_network
 

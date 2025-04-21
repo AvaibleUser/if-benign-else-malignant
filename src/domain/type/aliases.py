@@ -13,3 +13,5 @@ ErrorEntered = ndarray
 Cost = Callable[[ndarray, ndarray], ndarray]
 
 Activation = Callable[[ndarray], ndarray]
+
+UpdateChart = Callable[[float, float], None]
